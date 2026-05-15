@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import LessonCard from "@/components/stage/LessonCard";
 import { useLayout } from "@/components/providers/LayoutProvider";
 
@@ -24,6 +25,7 @@ interface StageData {
 }
 
 export default function StagePage({ params }: { params: { stageId: string } }) {
+  const router = useRouter();
   const { mode } = useLayout();
   const [data, setData] = useState<StageData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -98,13 +100,18 @@ export default function StagePage({ params }: { params: { stageId: string } }) {
           </div>
         </div>
 
-        <Link
-          href={`/lesson/${data.lessons[0]?.id}/test`}
+        <button
+          onClick={() => {
+            if (document.documentElement.requestFullscreen) {
+              document.documentElement.requestFullscreen().catch(() => {});
+            }
+            router.push(`/lesson/${data.lessons[0]?.id}/test`);
+          }}
           className="bg-ll-green text-white font-black px-8 py-5 rounded-[2rem] shadow-xl hover:bg-ll-green-dark hover:shadow-ll-green/20 transition-all active:scale-95 text-center flex items-center justify-center gap-3"
         >
           <span className="text-2xl">🏆</span>
           Test this Stage
-        </Link>
+        </button>
       </section>
 
       {/* Lesson Grid */}

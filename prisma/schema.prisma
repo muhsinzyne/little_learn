@@ -35,6 +35,7 @@ model TtsSettings {
   id             Int          @id @default(autoincrement())
   childProfileId Int          @unique
   autoplay       Boolean      @default(true)
+  soundEnabled   Boolean      @default(true)
   repeatCount    Int          @default(1)
   speed          Float        @default(1.0)
   voiceName      String?

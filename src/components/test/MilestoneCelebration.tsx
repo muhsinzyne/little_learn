@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 
 interface MilestoneCelebrationProps {
@@ -35,7 +35,7 @@ export default function MilestoneCelebration({ stageName }: MilestoneCelebration
             {stageName}
           </p>
           <p className="text-slate-400 font-bold max-w-xs mx-auto">
-            You've learned everything in this stage! You're doing amazing!
+            You&apos;ve learned everything in this stage! You&apos;re doing amazing!
           </p>
         </div>
 

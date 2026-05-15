@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface LessonCardProps {
   id: number;
@@ -20,6 +21,7 @@ export default function LessonCard({
   isCompleted,
   mode
 }: LessonCardProps) {
+  const router = useRouter();
   // Color mapping based on lesson type
   const colorMap: Record<string, string> = {
     NUMBER: "bg-ll-blue text-white",
@@ -59,18 +61,28 @@ export default function LessonCard({
       </h3>
 
       <div className="grid grid-cols-2 gap-3 mt-auto">
-        <Link
-          href={`/lesson/${id}/learn`}
+        <button
+          onClick={() => {
+            if (document.documentElement.requestFullscreen) {
+              document.documentElement.requestFullscreen().catch(() => {});
+            }
+            router.push(`/lesson/${id}/learn`);
+          }}
           className="bg-slate-50 text-slate-600 font-black py-3 rounded-xl text-xs uppercase tracking-wider text-center hover:bg-slate-100 transition-colors border border-slate-200"
         >
           Learn
-        </Link>
-        <Link
-          href={`/lesson/${id}/test`}
+        </button>
+        <button
+          onClick={() => {
+            if (document.documentElement.requestFullscreen) {
+              document.documentElement.requestFullscreen().catch(() => {});
+            }
+            router.push(`/lesson/${id}/test`);
+          }}
           className="bg-ll-purple text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider text-center hover:bg-ll-purple-dark shadow-md hover:shadow-ll-purple/20 transition-all active:scale-95"
         >
           Test
-        </Link>
+        </button>
       </div>
     </div>
   );

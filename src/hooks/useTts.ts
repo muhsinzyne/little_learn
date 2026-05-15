@@ -6,6 +6,7 @@ interface UseTtsOptions {
   repeatCount: number;
   speed: number;
   voiceName?: string | null;
+  soundEnabled?: boolean;
 }
 
 interface UseTtsReturn {
@@ -14,7 +15,7 @@ interface UseTtsReturn {
   isSpeaking: boolean;
 }
 
-export function useTts({ repeatCount, speed, voiceName }: UseTtsOptions): UseTtsReturn {
+export function useTts({ repeatCount, speed, voiceName, soundEnabled = true }: UseTtsOptions): UseTtsReturn {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const repeatIndexRef = useRef(0);
   const textRef = useRef("");
@@ -32,7 +33,7 @@ export function useTts({ repeatCount, speed, voiceName }: UseTtsOptions): UseTts
   }, []);
 
   const speakInternal = useCallback(() => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    if (typeof window === "undefined" || !window.speechSynthesis || !soundEnabled) return;
 
     const utterance = new SpeechSynthesisUtterance(textRef.current);
     utterance.rate = speed;
@@ -69,7 +70,7 @@ export function useTts({ repeatCount, speed, voiceName }: UseTtsOptions): UseTts
     };
 
     window.speechSynthesis.speak(utterance);
-  }, [speed, voiceName, repeatCount]);
+  }, [speed, voiceName, repeatCount, soundEnabled]);
 
   const speak = useCallback((text: string) => {
     stop();

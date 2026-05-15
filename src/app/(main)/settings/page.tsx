@@ -13,6 +13,7 @@ interface ChildProfile {
 
 interface TtsSettings {
   autoplay: boolean;
+  soundEnabled: boolean;
   repeatCount: number;
   speed: number;
   voiceName: string | null;
@@ -20,7 +21,7 @@ interface TtsSettings {
 
 export default function SettingsPage() {
   const { data: session, update: updateSession } = useSession();
-  const { preference, setPreference, mode } = useLayout();
+  const { preference, setPreference } = useLayout();
   
   const [loading, setLoading] = useState(true);
   const [profiles, setProfiles] = useState<ChildProfile[]>([]);
@@ -188,66 +189,96 @@ export default function SettingsPage() {
           </div>
           {savingTts && <span className="text-xs font-black text-ll-purple animate-pulse uppercase">Saving...</span>}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm">
-          <div className="space-y-4">
-            <label className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors">
-              <span className="font-black text-slate-600 uppercase tracking-widest text-xs">Autoplay Lessons</span>
-              <input 
-                type="checkbox" 
-                checked={tts?.autoplay} 
-                onChange={(e) => saveTts({ autoplay: e.target.checked })}
-                className="w-6 h-6 accent-ll-purple"
-              />
-            </label>
-            <div className="space-y-2">
-              <span className="font-black text-slate-500 uppercase tracking-widest text-[10px] pl-4">Repeats</span>
-              <div className="flex gap-2">
-                {[1, 2, 3, 5].map(n => (
-                  <button 
-                    key={n}
-                    onClick={() => saveTts({ repeatCount: n })}
-                    className={`flex-1 py-3 rounded-xl font-black transition-all ${
-                      tts?.repeatCount === n ? "bg-ll-purple text-white shadow-md" : "bg-slate-50 text-slate-400 hover:bg-slate-100"
-                    }`}
-                  >
-                    {n}x
-                  </button>
-                ))}
+
+        {!tts ? (
+          <div className="bg-slate-50 p-12 rounded-[3rem] border-2 border-dashed border-slate-200 text-center">
+            <div className="text-4xl mb-4">👦</div>
+            <h3 className="font-black text-slate-400 uppercase tracking-widest text-sm">No Child Profile Selected</h3>
+            <p className="text-slate-300 font-bold text-xs mt-2">Add a child profile below to configure voice settings.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm">
+            <div className="space-y-4">
+              <label className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors">
+                <div className="flex flex-col">
+                  <span className="font-black text-slate-600 uppercase tracking-widest text-xs">Master Sound Switch</span>
+                  <span className="text-[10px] font-bold text-slate-400">Turn all app audio on or off</span>
+                </div>
+                <input 
+                  type="checkbox" 
+                  checked={tts.soundEnabled} 
+                  onChange={(e) => saveTts({ soundEnabled: e.target.checked })}
+                  className="w-6 h-6 accent-ll-purple"
+                />
+              </label>
+
+              <div className={`space-y-4 transition-all duration-300 ${!tts.soundEnabled ? "opacity-30 pointer-events-none grayscale" : ""}`}>
+                <label className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl cursor-pointer hover:bg-slate-100 transition-colors">
+                  <span className="font-black text-slate-600 uppercase tracking-widest text-xs">Autoplay Lessons</span>
+                  <input 
+                    type="checkbox" 
+                    checked={tts.autoplay} 
+                    onChange={(e) => saveTts({ autoplay: e.target.checked })}
+                    className="w-6 h-6 accent-ll-purple"
+                  />
+                </label>
+                
+                <div className="space-y-2">
+                  <span className="font-black text-slate-500 uppercase tracking-widest text-[10px] pl-4">Repeats</span>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 5].map(n => (
+                      <button 
+                        key={n}
+                        disabled={!tts.soundEnabled}
+                        onClick={() => saveTts({ repeatCount: n })}
+                        className={`flex-1 py-3 rounded-xl font-black transition-all ${
+                          tts.repeatCount === n ? "bg-ll-purple text-white shadow-md" : "bg-slate-50 text-slate-400 hover:bg-slate-100"
+                        }`}
+                      >
+                        {n}x
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className={`space-y-4 transition-all duration-300 ${!tts.soundEnabled ? "opacity-30 pointer-events-none grayscale" : ""}`}>
+              <div className="space-y-2">
+                <span className="font-black text-slate-500 uppercase tracking-widest text-[10px] pl-4">Voice Speed</span>
+                <div className="flex gap-2">
+                  {[0.8, 1.0].map(s => (
+                    <button 
+                      key={s}
+                      disabled={!tts.soundEnabled}
+                      onClick={() => saveTts({ speed: s })}
+                      className={`flex-1 py-3 rounded-xl font-black transition-all ${
+                        tts.speed === s ? "bg-ll-blue text-white shadow-md" : "bg-slate-50 text-slate-400 hover:bg-slate-100"
+                      }`}
+                    >
+                      {s === 0.8 ? "Slow" : "Normal"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <span className="font-black text-slate-500 uppercase tracking-widest text-[10px] pl-4">Voice Accent</span>
+                <select 
+                  disabled={!tts.soundEnabled}
+                  value={tts.voiceName || ""} 
+                  onChange={(e) => saveTts({ voiceName: e.target.value })}
+                  className="w-full p-4 bg-slate-50 rounded-2xl font-bold text-slate-600 appearance-none outline-none border-2 border-transparent focus:border-ll-purple transition-all"
+                >
+                  <option value="">Default Voice</option>
+                  {availableVoices.map(v => (
+                    <option key={v.name} value={v.name}>{v.name} ({v.lang})</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <span className="font-black text-slate-500 uppercase tracking-widest text-[10px] pl-4">Voice Speed</span>
-              <div className="flex gap-2">
-                {[0.8, 1.0].map(s => (
-                  <button 
-                    key={s}
-                    onClick={() => saveTts({ speed: s })}
-                    className={`flex-1 py-3 rounded-xl font-black transition-all ${
-                      tts?.speed === s ? "bg-ll-blue text-white shadow-md" : "bg-slate-50 text-slate-400 hover:bg-slate-100"
-                    }`}
-                  >
-                    {s === 0.8 ? "Slow" : "Normal"}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <span className="font-black text-slate-500 uppercase tracking-widest text-[10px] pl-4">Voice Accent</span>
-              <select 
-                value={tts?.voiceName || ""} 
-                onChange={(e) => saveTts({ voiceName: e.target.value })}
-                className="w-full p-4 bg-slate-50 rounded-2xl font-bold text-slate-600 appearance-none outline-none border-2 border-transparent focus:border-ll-purple transition-all"
-              >
-                <option value="">Default Voice</option>
-                {availableVoices.map(v => (
-                  <option key={v.name} value={v.name}>{v.name} ({v.lang})</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
+        )}
       </section>
 
       {/* Profile Management */}
