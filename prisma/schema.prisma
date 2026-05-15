@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               Int            @id @default(autoincrement())
+  name             String
+  email            String         @unique
+  passwordHash     String
+  layoutPreference String?        @default("auto")
+  createdAt        DateTime       @default(now())
+  children         ChildProfile[]
+}
+
+model ChildProfile {
+  id         Int                    @id @default(autoincrement())
+  userId     Int
+  name       String
+  age        Int
+  avatarKey  String?
+  createdAt  DateTime               @default(now())
+  user       User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ttsSettings TtsSettings?
+  progress   ChildLessonProgress[]
+  testSessions TestSession[]
+  milestones Milestone[]
+}
+
+model TtsSettings {
+  id             Int          @id @default(autoincrement())
+  childProfileId Int          @unique
+  autoplay       Boolean      @default(true)
+  repeatCount    Int          @default(1)
+  speed          Float        @default(1.0)
+  voiceName      String?
+  childProfile   ChildProfile @relation(fields: [childProfileId], references: [id], onDelete: Cascade)
+}
+
+enum LessonType {
+  NUMBER
+  LETTER
+  WORD
+  SHAPE
+  COLOR
+}
+
+model Stage {
+  id            Int       @id @default(autoincrement())
+  title         String
+  description   String?   @db.Text
+  iconKey       String?
+  orderIndex    Int       @unique
+  milestoneFlag Boolean   @default(false)
+  lessons       Lesson[]
+  testSessions  TestSession[]
+  milestones    Milestone[]
+}
+
+model Lesson {
+  id              Int       @id @default(autoincrement())
+  stageId         Int
+  title           String
+  type            LessonType
+  contentValue    String
+  contentImageKey String?
+  orderIndex      Int
+  stage           Stage     @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  progress        ChildLessonProgress[]
+
+  @@unique([stageId, orderIndex])
+}
+
+model ChildLessonProgress {
+  id             Int          @id @default(autoincrement())
+  childProfileId Int
+  lessonId       Int
+  completed      Boolean      @default(false)
+  completedAt    DateTime?
+  childProfile   ChildProfile @relation(fields: [childProfileId], references: [id], onDelete: Cascade)
+  lesson         Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([childProfileId, lessonId])
+}
+
+model TestSession {
+  id             Int          @id @default(autoincrement())
+  childProfileId Int
+  stageId        Int
+  score          Int
+  totalQuestions Int
+  takenAt        DateTime     @default(now())
+  childProfile   ChildProfile @relation(fields: [childProfileId], references: [id], onDelete: Cascade)
+  stage          Stage        @relation(fields: [stageId], references: [id], onDelete: Cascade)
+}
+
+model Milestone {
+  id             Int          @id @default(autoincrement())
+  childProfileId Int
+  stageId        Int
+  earnedAt       DateTime     @default(now())
+  childProfile   ChildProfile @relation(fields: [childProfileId], references: [id], onDelete: Cascade)
+  stage          Stage        @relation(fields: [stageId], references: [id], onDelete: Cascade)
+
+  @@unique([childProfileId, stageId])
+}
