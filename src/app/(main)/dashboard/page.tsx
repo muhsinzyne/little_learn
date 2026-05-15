@@ -138,7 +138,7 @@ export default function DashboardPage() {
             ? "grid-cols-2" 
             : "grid-cols-3 lg:grid-cols-4"
         }`}>
-          {data?.stages.map((stage) => (
+          {data?.stages?.map((stage) => (
             <StageCard 
               key={stage.id} 
               {...stage} 

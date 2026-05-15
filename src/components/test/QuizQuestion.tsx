@@ -1,9 +1,7 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import QuestionPrompt from "./QuestionPrompt";
-import SpeakerButton from "../lesson/SpeakerButton";
-import { useTts } from "@/hooks/useTts";
 
 interface Option {
   value: string;
@@ -22,27 +20,10 @@ interface Question {
 interface QuizQuestionProps {
   question: Question;
   onAnswer: (correct: boolean) => void;
-  ttsSettings: {
-    soundEnabled: boolean;
-    repeatCount: number;
-    speed: number;
-    voiceName: string | null;
-  } | null;
 }
 
-export default function QuizQuestion({ question, onAnswer, ttsSettings }: QuizQuestionProps) {
+export default function QuizQuestion({ question, onAnswer }: QuizQuestionProps) {
   const [selected, setSelected] = useState<number | null>(null);
-
-  const { speak, isSpeaking } = useTts({
-    repeatCount: 1, // Keep it simple for tests
-    speed: ttsSettings?.speed ?? 1,
-    voiceName: ttsSettings?.voiceName,
-    soundEnabled: ttsSettings?.soundEnabled ?? true,
-  });
-
-  const speakPrompt = useCallback(() => {
-    speak(question.prompt);
-  }, [speak, question.prompt]);
 
   const handleSelect = (index: number) => {
     if (selected !== null) return;

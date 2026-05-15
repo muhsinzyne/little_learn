@@ -7,8 +7,6 @@ import QuizProgressBar from "@/components/test/QuizProgressBar";
 import QuizQuestion from "@/components/test/QuizQuestion";
 import QuizResults from "@/components/test/QuizResults";
 import MilestoneCelebration from "@/components/test/MilestoneCelebration";
-import SpeakerButton from "@/components/lesson/SpeakerButton";
-import { useTts } from "@/hooks/useTts";
 
 interface Question {
   lessonId: number;
@@ -24,14 +22,6 @@ interface QuizData {
   questions: Question[];
 }
 
-interface TtsSettings {
-  autoplay: boolean;
-  soundEnabled: boolean;
-  repeatCount: number;
-  speed: number;
-  voiceName: string | null;
-}
-
 export default function StageTestPage() {
   const { stageId } = useParams();
 
@@ -43,7 +33,6 @@ export default function StageTestPage() {
   const [phase, setPhase] = useState<"QUIZ" | "RESULTS">("QUIZ");
   const [milestoneEarned, setMilestoneEarned] = useState(false);
   const [stageName, setStageName] = useState("");
-  const [ttsSettings, setTtsSettings] = useState<TtsSettings | null>(null);
 
   const fetchQuiz = useCallback(async () => {
     setLoading(true);
@@ -54,22 +43,15 @@ export default function StageTestPage() {
     setMilestoneEarned(false);
 
     try {
-      const [quizRes, ttsRes] = await Promise.all([
-        fetch(`/api/stages/${stageId}/quiz`),
-        fetch("/api/tts-settings")
-      ]);
+      const quizRes = await fetch(`/api/stages/${stageId}/quiz`);
 
       if (quizRes.ok) {
         const data = await quizRes.json();
         setQuiz(data);
         setResults(new Array(data.questions.length).fill(null));
       }
-
-      if (ttsRes.ok) {
-        setTtsSettings(await ttsRes.json());
-      }
     } catch (error) {
-      console.error("Failed to fetch quiz or settings", error);
+      console.error("Failed to fetch quiz", error);
     } finally {
       setLoading(false);
     }
@@ -79,28 +61,7 @@ export default function StageTestPage() {
     fetchQuiz();
   }, [fetchQuiz]);
 
-  const { speak, isSpeaking } = useTts({
-    repeatCount: 1,
-    speed: ttsSettings?.speed ?? 1,
-    voiceName: ttsSettings?.voiceName,
-    soundEnabled: ttsSettings?.soundEnabled ?? true,
-  });
 
-  const speakCurrentPrompt = useCallback(() => {
-    if (quiz && quiz.questions[currentIndex]) {
-      speak(quiz.questions[currentIndex].prompt);
-    }
-  }, [quiz, currentIndex, speak]);
-
-  // Autoplay for quiz
-  useEffect(() => {
-    if (!loading && quiz && ttsSettings?.autoplay && phase === "QUIZ") {
-      const timer = setTimeout(() => {
-        speakCurrentPrompt();
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [loading, quiz, currentIndex, ttsSettings?.autoplay, speakCurrentPrompt, phase]);
 
   const handleAnswer = async (correct: boolean) => {
     const newResults = [...results];
@@ -136,23 +97,7 @@ export default function StageTestPage() {
     }
   };
 
-  const toggleSound = async () => {
-    if (!ttsSettings) return;
-    const newState = !ttsSettings.soundEnabled;
-    
-    setTtsSettings({ ...ttsSettings, soundEnabled: newState });
-    
-    try {
-      await fetch("/api/tts-settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...ttsSettings, soundEnabled: newState }),
-      });
-    } catch (error) {
-      console.error("Failed to toggle sound", error);
-      setTtsSettings(ttsSettings);
-    }
-  };
+
 
   if (loading) {
     return (
@@ -188,7 +133,6 @@ export default function StageTestPage() {
             key={currentIndex}
             question={quiz.questions[currentIndex]} 
             onAnswer={handleAnswer} 
-            ttsSettings={ttsSettings}
           />
         ) : (
           <QuizResults 
@@ -206,42 +150,17 @@ export default function StageTestPage() {
 
       {/* Unified Floating Bottom Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-slate-200/50 p-4 z-50 shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.05)]">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
+        <div className="max-w-4xl mx-auto flex items-center justify-center gap-4">
           
-          <button
-            onClick={toggleSound}
-            className={`w-14 h-14 rounded-2xl flex flex-shrink-0 items-center justify-center transition-all active:scale-90 border-2 ${
-              ttsSettings?.soundEnabled 
-                ? "bg-ll-purple/10 text-ll-purple border-ll-purple/20 hover:bg-ll-purple hover:text-white" 
-                : "bg-slate-100 text-slate-400 border-slate-200 hover:bg-slate-200"
-            }`}
-            title={ttsSettings?.soundEnabled ? "Mute Sound" : "Enable Sound"}
-          >
-            <span className="text-2xl">{ttsSettings?.soundEnabled ? "🔊" : "🔇"}</span>
-          </button>
-
-          {phase === "QUIZ" && (
-            <>
-              <div className="flex flex-col items-center">
-                <SpeakerButton 
-                  onSpeak={speakCurrentPrompt} 
-                  isSpeaking={isSpeaking} 
-                  disabled={!ttsSettings?.soundEnabled}
-                  size="sm"
-                />
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
-                  {ttsSettings?.soundEnabled ? (isSpeaking ? "Listening..." : "Click to hear") : "Muted"}
-                </p>
-              </div>
-
-              <div className="flex-1 max-w-md mx-auto hidden md:block">
-                <QuizProgressBar current={currentIndex + 1} total={quiz.questions.length} results={results} />
-              </div>
-            </>
+          {phase === "QUIZ" ? (
+            <div className="flex-1 max-w-2xl mx-auto">
+              <QuizProgressBar current={currentIndex + 1} total={quiz.questions.length} results={results} />
+            </div>
+          ) : (
+            <div className="flex items-center gap-4 py-2">
+              <span className="text-sm font-black text-slate-400 uppercase tracking-widest">Test Completed</span>
+            </div>
           )}
-
-          {/* Spacer to balance the layout if progress bar is hidden on mobile */}
-          <div className="w-14 md:hidden"></div>
         </div>
       </div>
     </div>

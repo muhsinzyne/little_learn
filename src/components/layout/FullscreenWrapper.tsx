@@ -11,20 +11,19 @@ export default function FullscreenWrapper({ children }: { children: React.ReactN
 
   useEffect(() => {
     // Attempt to enter native fullscreen if supported
-    // Browsers usually require a user gesture, so this may fail on direct page load/refresh
-    // which is why we also update the "Start" buttons in other files.
     if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen().catch((err) => {
         console.log("Fullscreen request failed or unsupported:", err.message);
       });
     }
 
-    // Clean up fullscreen on unmount if we want to (optional)
-    // return () => {
-    //   if (document.fullscreenElement && document.exitFullscreen) {
-    //     document.exitFullscreen().catch(() => {});
-    //   }
-    // };
+    // Listen for custom exit confirm request
+    const handleExitRequest = () => setShowConfirm(true);
+    window.addEventListener("request-exit-confirm", handleExitRequest);
+
+    return () => {
+      window.removeEventListener("request-exit-confirm", handleExitRequest);
+    };
   }, []);
 
   const handleExitClick = () => {
