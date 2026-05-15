@@ -1,18 +1,37 @@
-export default function LessonTestPage() {
+"use client";
+
+import { useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+
+export default function LessonTestRedirectPage() {
+  const { lessonId } = useParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const resolveStageAndRedirect = async () => {
+      try {
+        const res = await fetch(`/api/lessons/${lessonId}`);
+        if (res.ok) {
+          const data = await res.json();
+          router.replace(`/stage/${data.lesson.stageId}/test`);
+        } else {
+          router.replace("/dashboard");
+        }
+      } catch (error) {
+        console.error("Failed to resolve stage for test redirect", error);
+        router.replace("/dashboard");
+      }
+    };
+
+    resolveStageAndRedirect();
+  }, [lessonId, router]);
+
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="text-center mb-12">
-        <span className="bg-orange-100 text-orange-600 px-4 py-1 rounded-full text-sm font-semibold uppercase tracking-wider">Test Mode</span>
-        <h1 className="text-3xl font-bold text-slate-800 mt-4">Can you find the letter A?</h1>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-6">
-        {['B', 'A', 'C', 'D'].map((choice) => (
-          <button key={choice} className="aspect-square bg-white rounded-2xl border-4 border-slate-100 flex items-center justify-center text-6xl font-bold text-slate-400 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all">
-            {choice}
-          </button>
-        ))}
-      </div>
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+      <div className="w-16 h-16 border-4 border-ll-purple border-t-transparent rounded-full animate-spin" />
+      <p className="font-black text-slate-400 uppercase tracking-widest animate-pulse">
+        Setting up your test...
+      </p>
     </div>
   );
 }

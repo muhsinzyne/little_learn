@@ -22,6 +22,7 @@ export default function SpeakerButton({ onSpeak, isSpeaking, size = "lg" }: Spea
         onClick={onSpeak}
         className={`${sizeClasses[size]} bg-ll-purple text-white rounded-full shadow-xl hover:shadow-ll-purple/30 transition-all active:scale-95 flex items-center justify-center z-10 relative`}
         title={isSpeaking ? "Stop" : "Listen"}
+        aria-label={isSpeaking ? "Stop speaking" : "Read aloud"}
       >
         {isSpeaking ? (
           <span className="animate-pulse">🔊</span>

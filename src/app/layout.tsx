@@ -10,8 +10,12 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "LittleLearn — Fun Learning for Preschoolers",
-  description: "A playful learning platform for children aged 3–6.",
+  title: {
+    template: "%s | LittleLearn",
+    default: "LittleLearn — Fun Learning for Preschoolers",
+  },
+  description: "A playful, safe, and interactive learning platform designed for children aged 3–6. Learn letters, numbers, shapes, and colors through adventure!",
+  metadataBase: new URL("http://localhost:3000"),
 };
 
 export default function RootLayout({

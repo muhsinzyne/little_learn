@@ -29,3 +29,35 @@ export async function GET() {
     );
   }
 }
+
+export async function PUT(req: Request) {
+  const session = await getServerSession(authOptions);
+  const activeChildId = session?.user?.activeChildProfileId;
+
+  if (!session || !activeChildId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const body = await req.json();
+    const { autoplay, repeatCount, speed, voiceName } = body;
+
+    const settings = await prisma.ttsSettings.update({
+      where: { childProfileId: activeChildId },
+      data: {
+        autoplay,
+        repeatCount: parseInt(repeatCount, 10),
+        speed: parseFloat(speed),
+        voiceName,
+      },
+    });
+
+    return NextResponse.json(settings);
+  } catch (error) {
+    console.error("Update TTS settings error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

@@ -25,11 +25,12 @@ export default function Sidebar() {
         </Link>
       </div>
 
-      <nav className="flex-1 px-4 space-y-3">
+      <nav className="flex-1 px-4 space-y-3" aria-label="Main Navigation">
         {navItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
+            aria-label={`Go to ${item.label}`}
             className={`flex items-center gap-4 px-6 py-4 font-bold rounded-[2rem] transition-all group ${
               pathname === item.href
                 ? "bg-slate-50 text-slate-900 shadow-sm"
